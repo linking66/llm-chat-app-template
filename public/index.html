@@ -35,7 +35,7 @@
 
 			header {
 				text-align: center;
-				margin-bottom: 2rem;
+				margin-bottom: 1rem;
 				padding: 1rem 0;
 				border-bottom: 1px solid var(--border-color);
 			}
@@ -45,10 +45,38 @@
 				color: var(--primary-color);
 			}
 
+			/* 模型选择器样式 */
+			.model-selector {
+				margin: 1rem 0;
+				padding: 0.5rem 1rem;
+				background-color: #f0f0f0;
+				border-radius: 6px;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-size: 0.9rem;
+			}
+			.model-selector label {
+				font-weight: 500;
+				color: var(--text-color);
+			}
+			.model-selector select {
+				padding: 0.3rem 0.5rem;
+				border-radius: 4px;
+				border: 1px solid var(--border-color);
+				background: white;
+				flex: 1;
+				max-width: 300px;
+			}
+			.model-selector select:disabled {
+				background-color: #e5e7eb;
+				cursor: not-allowed;
+			}
+
 			.chat-container {
 				display: flex;
 				flex-direction: column;
-				height: calc(100vh - 200px);
+				height: calc(100vh - 250px);
 				min-height: 400px;
 				border: 1px solid var(--border-color);
 				border-radius: 8px;
@@ -147,6 +175,19 @@
 			<h1>Cloudflare AI Chat</h1>
 			<p>Powered by Cloudflare Workers AI</p>
 		</header>
+
+		<!-- 模型选择下拉框 -->
+		<div class="model-selector">
+			<label for="model-select">选择模型：</label>
+			<select id="model-select">
+				<option value="@cf/meta/llama-3.1-8b-instruct-fp8" selected>Llama 3.1 8B (默认)</option>
+				<option value="@cf/zai-org/glm-4.7-flash">GLM 4.7 Flash</option>
+				<option value="@cf/meta/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option>
+				<option value="@cf/ibm-granite/granite-4.0-h-micro">Granite 4.0 H Micro</option>
+				<option value="@cf/openai/gpt-oss-20b">GPT OSS 20B</option>
+				<option value="@cf/qwen/qwen3-30b-a3b-fp8">Qwen3 30B A3B FP8</option>
+			</select>
+		</div>
 
 		<div class="chat-container">
 			<div id="chat-messages" class="chat-messages">
