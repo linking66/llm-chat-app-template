@@ -37,9 +37,9 @@ userInput.addEventListener("input", function () {
 	this.style.height = this.scrollHeight + "px";
 });
 
-// Send message on Enter (without Shift)
+// Send message on Shift + Enter (Shift+Enter 发送，单独 Enter 换行)
 userInput.addEventListener("keydown", function (e) {
-	if (e.key === "Enter" && !e.shiftKey) {
+	if (e.key === "Enter" && e.shiftKey) {
 		e.preventDefault();
 		sendMessage();
 	}
