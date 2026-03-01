@@ -9,11 +9,10 @@
  */
 import { Env, ChatMessage } from "./types";
 
-// Model ID for Workers AI model
-// https://developers.cloudflare.com/workers-ai/models/
-const MODEL_ID = "@cf/meta/llama-3.1-8b-instruct-fp8";
+// 默认模型 ID（当请求未指定时使用）
+const DEFAULT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8";
 
-// Default system prompt
+// 默认系统提示
 const SYSTEM_PROMPT =
 	"You are a helpful, friendly assistant. Provide concise and accurate responses.";
 
@@ -57,10 +56,14 @@ async function handleChatRequest(
 	env: Env,
 ): Promise<Response> {
 	try {
-		// Parse JSON request body
-		const { messages = [] } = (await request.json()) as {
+		// 解析请求体，包含消息数组和可选的模型 ID
+		const { messages = [], model } = (await request.json()) as {
 			messages: ChatMessage[];
+			model?: string;
 		};
+
+		// 优先使用前端传来的模型 ID，否则使用默认值
+		const modelId = model || DEFAULT_MODEL;
 
 		// Add system prompt if not present
 		if (!messages.some((msg) => msg.role === "system")) {
@@ -68,7 +71,7 @@ async function handleChatRequest(
 		}
 
 		const stream = await env.AI.run(
-			MODEL_ID,
+			modelId, // 动态选择的模型
 			{
 				messages,
 				max_tokens: 1024,
