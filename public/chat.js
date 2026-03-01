@@ -9,7 +9,7 @@ const chatMessages = document.getElementById("chat-messages");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
-const modelSelect = document.getElementById("model-select"); // 新增：模型选择下拉框
+const modelSelect = document.getElementById("model-select");
 
 // Chat state
 let chatHistory = [
@@ -20,6 +20,16 @@ let chatHistory = [
 	},
 ];
 let isProcessing = false;
+
+// 初始化：为现有的所有 assistant 消息添加复制按钮
+document.addEventListener("DOMContentLoaded", () => {
+	document.querySelectorAll(".assistant-message").forEach((msgEl) => {
+		const textEl = msgEl.querySelector("p");
+		if (textEl && !msgEl.querySelector(".copy-btn")) {
+			addCopyButtonToMessage(msgEl, textEl);
+		}
+	});
+});
 
 // Auto-resize textarea as user types
 userInput.addEventListener("input", function () {
@@ -39,6 +49,57 @@ userInput.addEventListener("keydown", function (e) {
 sendButton.addEventListener("click", sendMessage);
 
 /**
+ * 为指定的消息元素添加复制按钮
+ * @param {HTMLElement} messageEl - 消息容器（应具有 .assistant-message 类）
+ * @param {HTMLElement} textEl - 包含文本的 <p> 元素
+ */
+function addCopyButtonToMessage(messageEl, textEl) {
+	const copyBtn = document.createElement("button");
+	copyBtn.className = "copy-btn";
+	copyBtn.textContent = "复制";
+	copyBtn.setAttribute("aria-label", "复制消息");
+	
+	copyBtn.addEventListener("click", async () => {
+		const text = textEl.textContent; // 获取当前文本（流式更新时也是最新的）
+		await copyToClipboard(text, copyBtn);
+	});
+	
+	messageEl.appendChild(copyBtn);
+}
+
+/**
+ * 复制文本到剪贴板，并临时改变按钮状态
+ * @param {string} text - 要复制的文本
+ * @param {HTMLElement} btn - 被点击的复制按钮
+ */
+async function copyToClipboard(text, btn) {
+	try {
+		await navigator.clipboard.writeText(text);
+		showCopyFeedback(btn);
+	} catch (err) {
+		console.error('复制失败（使用备用方法）:', err);
+		// 降级方案
+		const textarea = document.createElement('textarea');
+		textarea.value = text;
+		document.body.appendChild(textarea);
+		textarea.select();
+		document.execCommand('copy');
+		document.body.removeChild(textarea);
+		showCopyFeedback(btn);
+	}
+}
+
+function showCopyFeedback(btn) {
+	const originalText = btn.textContent;
+	btn.textContent = "已复制";
+	btn.classList.add("copied");
+	setTimeout(() => {
+		btn.textContent = originalText;
+		btn.classList.remove("copied");
+	}, 2000);
+}
+
+/**
  * Sends a message to the chat API and processes the response
  */
 async function sendMessage() {
@@ -51,7 +112,7 @@ async function sendMessage() {
 	isProcessing = true;
 	userInput.disabled = true;
 	sendButton.disabled = true;
-	modelSelect.disabled = true; // 禁用模型选择
+	modelSelect.disabled = true;
 
 	// Add user message to chat
 	addMessageToChat("user", message);
@@ -74,6 +135,9 @@ async function sendMessage() {
 		chatMessages.appendChild(assistantMessageEl);
 		const assistantTextEl = assistantMessageEl.querySelector("p");
 
+		// 添加复制按钮
+		addCopyButtonToMessage(assistantMessageEl, assistantTextEl);
+
 		// Scroll to bottom
 		chatMessages.scrollTop = chatMessages.scrollHeight;
 
@@ -85,7 +149,7 @@ async function sendMessage() {
 			},
 			body: JSON.stringify({
 				messages: chatHistory,
-				model: modelSelect.value, // 传递选中的模型 ID
+				model: modelSelect.value,
 			}),
 		});
 
@@ -153,7 +217,6 @@ async function sendMessage() {
 				}
 				try {
 					const jsonData = JSON.parse(data);
-					// Handle both Workers AI format (response) and OpenAI format (choices[0].delta.content)
 					let content = "";
 					if (
 						typeof jsonData.response === "string" &&
@@ -194,7 +257,7 @@ async function sendMessage() {
 		isProcessing = false;
 		userInput.disabled = false;
 		sendButton.disabled = false;
-		modelSelect.disabled = false; // 重新启用模型选择
+		modelSelect.disabled = false;
 		userInput.focus();
 	}
 }
@@ -207,6 +270,9 @@ function addMessageToChat(role, content) {
 	messageEl.className = `message ${role}-message`;
 	messageEl.innerHTML = `<p>${content}</p>`;
 	chatMessages.appendChild(messageEl);
+
+	// 如果是 assistant 消息，添加复制按钮（此函数仅用于用户消息或错误消息，所以不处理）
+	// 如果将来需要，可在此处判断 role === 'assistant' 并添加按钮。
 
 	// Scroll to bottom
 	chatMessages.scrollTop = chatMessages.scrollHeight;
