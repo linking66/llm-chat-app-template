@@ -91,6 +91,7 @@
 			}
 
 			.message {
+				position: relative; /* 为复制按钮定位 */
 				margin-bottom: 1rem;
 				padding: 0.75rem;
 				border-radius: 8px;
@@ -101,6 +102,7 @@
 				white-space: pre-line;
 				margin: 0;
 				overflow-wrap: anywhere;
+				padding-right: 50px; /* 给复制按钮留出空间 */
 			}
 
 			.user-message {
@@ -112,6 +114,32 @@
 			.assistant-message {
 				background-color: var(--assistant-msg-bg);
 				align-self: flex-start;
+			}
+
+			/* 复制按钮样式 */
+			.copy-btn {
+				position: absolute;
+				top: 5px;
+				right: 5px;
+				background: transparent;
+				border: none;
+				cursor: pointer;
+				font-size: 0.7rem;
+				color: #999;
+				padding: 2px 5px;
+				border-radius: 3px;
+				transition: background 0.2s;
+				z-index: 5;
+			}
+			.copy-btn:hover {
+				background: #e0e0e0;
+				color: #333;
+			}
+			.copy-btn.copied {
+				color: #28a745;
+			}
+			.copy-btn.copied:hover {
+				background: #d4edda;
 			}
 
 			.message-input {
@@ -191,11 +219,9 @@
 
 		<div class="chat-container">
 			<div id="chat-messages" class="chat-messages">
+				<!-- 初始 AI 消息（复制按钮将由 JavaScript 动态添加） -->
 				<div class="message assistant-message">
-					<p>
-						Hello! I'm an LLM chat app powered by Cloudflare Workers AI. How can
-						I help you today?
-					</p>
+					<p>Hello! I'm an LLM chat app powered by Cloudflare Workers AI. How can I help you today?</p>
 				</div>
 			</div>
 
