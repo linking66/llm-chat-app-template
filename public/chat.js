@@ -9,6 +9,7 @@ const chatMessages = document.getElementById("chat-messages");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
+const modelSelect = document.getElementById("model-select"); // 新增：模型选择下拉框
 
 // Chat state
 let chatHistory = [
@@ -46,10 +47,11 @@ async function sendMessage() {
 	// Don't send empty messages
 	if (message === "" || isProcessing) return;
 
-	// Disable input while processing
+	// Disable input and model selector while processing
 	isProcessing = true;
 	userInput.disabled = true;
 	sendButton.disabled = true;
+	modelSelect.disabled = true; // 禁用模型选择
 
 	// Add user message to chat
 	addMessageToChat("user", message);
@@ -75,7 +77,7 @@ async function sendMessage() {
 		// Scroll to bottom
 		chatMessages.scrollTop = chatMessages.scrollHeight;
 
-		// Send request to API
+		// Send request to API, including selected model
 		const response = await fetch("/api/chat", {
 			method: "POST",
 			headers: {
@@ -83,6 +85,7 @@ async function sendMessage() {
 			},
 			body: JSON.stringify({
 				messages: chatHistory,
+				model: modelSelect.value, // 传递选中的模型 ID
 			}),
 		});
 
@@ -187,10 +190,11 @@ async function sendMessage() {
 		// Hide typing indicator
 		typingIndicator.classList.remove("visible");
 
-		// Re-enable input
+		// Re-enable input and model selector
 		isProcessing = false;
 		userInput.disabled = false;
 		sendButton.disabled = false;
+		modelSelect.disabled = false; // 重新启用模型选择
 		userInput.focus();
 	}
 }
@@ -208,6 +212,10 @@ function addMessageToChat(role, content) {
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+/**
+ * Parses Server-Sent Events (SSE) data from a buffer.
+ * Returns an object with parsed events and remaining buffer.
+ */
 function consumeSseEvents(buffer) {
 	let normalized = buffer.replace(/\r/g, "");
 	const events = [];
